@@ -1,7 +1,11 @@
 from django.urls import include, path
+from django.views.generic.base import RedirectView
 from scanner import views
 
 urlpatterns = [
+    # Favicon route directly at root
+    path("favicon.ico", RedirectView.as_view(url="/static/favicon.png", permanent=False)),
+
     # REST API endpoints (backward compatible with legacy_react_frontend & external tools)
     path("api/", include("scanner.urls")),
 

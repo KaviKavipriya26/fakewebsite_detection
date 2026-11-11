@@ -46,9 +46,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const brand = (
     <Link to="/" className="flex items-center gap-2.5">
-      <span className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-primary shadow-glow">
-        <Shield className="h-5 w-5 text-primary-foreground" aria-hidden />
-      </span>
+      <img src="/ML-Based Fraud Detection Shield Logo.png" alt="FraudGuard Logo" className="h-9 w-9 rounded-lg object-contain shadow-glow" />
       <span className="font-display text-lg font-bold leading-none">Fraud<span className="text-primary">Guard</span></span>
     </Link>
   );
