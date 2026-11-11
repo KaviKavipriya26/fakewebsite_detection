@@ -1,0 +1,354 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FraudGuard — Fake Website & Fraud Detection System{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'favicon.png' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'favicon.png' %}">
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #1e293b;
+            --border-color: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --radius: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+        a:hover {
+            color: #60a5fa;
+        }
+
+        /* Navbar */
+        .navbar {
+            background-color: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0.85rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.02em;
+        }
+        .brand-badge {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: #fff;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+        .nav-link {
+            padding: 0.45rem 0.85rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.15s ease;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+        .nav-link.active {
+            color: #38bdf8;
+            background-color: rgba(56, 189, 248, 0.12);
+        }
+
+        /* Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            flex: 1;
+            width: 100%;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4 {
+            color: #fff;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        h1 { font-size: 2.1rem; margin-bottom: 0.5rem; }
+        h2 { font-size: 1.5rem; margin-bottom: 0.75rem; }
+        h3 { font-size: 1.15rem; margin-bottom: 0.5rem; }
+
+        .lead {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Cards & Panels */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.65rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .badge-success { background-color: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-warning { background-color: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge-danger { background-color: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-info { background-color: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            color: #fff;
+        }
+        .btn-secondary {
+            background-color: #334155;
+            color: #f1f5f9;
+        }
+        .btn-secondary:hover {
+            background-color: #475569;
+            color: #fff;
+        }
+        .btn-danger {
+            background-color: var(--danger);
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: #0f172a;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+        }
+        .form-hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.35rem;
+        }
+
+        /* Tables */
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            background-color: rgba(15, 23, 42, 0.5);
+        }
+        td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+        tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Grid */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        /* KPI Card */
+        .kpi-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+        }
+        .kpi-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 0.35rem;
+        }
+        .kpi-value {
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .kpi-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border-color);
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            background-color: var(--bg-secondary);
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{% url 'home' %}" class="brand">
+                <img src="{% static 'logo.png' %}" alt="FraudGuard Logo" style="height: 32px; width: 32px; object-fit: contain; border-radius: 6px;">
+                <span>FraudGuard</span>
+                <span class="brand-badge">ML & Security</span>
+            </a>
+            <div class="nav-links">
+                <a href="{% url 'home' %}" class="nav-link {% if active_tab == 'home' %}active{% endif %}">Home</a>
+                <a href="{% url 'scan' %}" class="nav-link {% if active_tab == 'scan' %}active{% endif %}">Scan Website</a>
+                <a href="{% url 'transaction' %}" class="nav-link {% if active_tab == 'transaction' %}active{% endif %}">Check Transaction</a>
+                <a href="{% url 'dashboard' %}" class="nav-link {% if active_tab == 'dashboard' %}active{% endif %}">Dashboard</a>
+                <a href="{% url 'history' %}" class="nav-link {% if active_tab == 'history' %}active{% endif %}">History</a>
+                <a href="{% url 'alerts' %}" class="nav-link {% if active_tab == 'alerts' %}active{% endif %}">Alerts</a>
+                <a href="{% url 'reports' %}" class="nav-link {% if active_tab == 'reports' %}active{% endif %}">Reports</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p><strong>ML-Based Fake Website and Online Fraud Detection System</strong> — College Review Project</p>
+        <p style="margin-top: 0.3rem;">Python (Django) Backend & Templates | Scikit-Learn Pipeline | SQLite Database</p>
+    </footer>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

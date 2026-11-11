@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Home — ML-Based Fake Website & Fraud Detection System{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2.5rem; text-align: center; max-width: 860px; margin-left: auto; margin-right: auto;">
+    <span class="badge badge-info" style="margin-bottom: 0.75rem;">College Review Project</span>
+    <h1>ML-Based Fake Website & Online Fraud Detection System</h1>
+    <p class="lead">
+        An end-to-end security analytics platform integrating a Scikit-Learn Machine Learning pipeline
+        for real-time URL phishing detection with a rule-based online financial transaction fraud guard.
+    </p>
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.25rem;">
+        <a href="{% url 'scan' %}" class="btn btn-primary" style="padding: 0.75rem 1.75rem; font-size: 1rem;">
+            🔍 Scan Website URL
+        </a>
+        <a href="{% url 'transaction' %}" class="btn btn-secondary" style="padding: 0.75rem 1.75rem; font-size: 1rem;">
+            💳 Check Transaction Risk
+        </a>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary" style="padding: 0.75rem 1.5rem; font-size: 1rem;">
+            📊 View Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- KPI Summary Cards -->
+<div class="grid-4" style="margin-bottom: 2rem;">
+    <div class="kpi-card">
+        <div class="kpi-title">Total Websites Scanned</div>
+        <div class="kpi-value">{{ metrics.total_scans }}</div>
+        <div class="kpi-sub">Saved in database</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-title">Legitimate Sites</div>
+        <div class="kpi-value" style="color: #34d399;">{{ metrics.legitimate_count }}</div>
+        <div class="kpi-sub">{{ metrics.legitimate_pct }}% of all scans</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-title">Fraudulent / Phishing</div>
+        <div class="kpi-value" style="color: #f87171;">{{ metrics.fraudulent_count }}</div>
+        <div class="kpi-sub">{{ metrics.fraudulent_pct }}% flagged threats</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-title">Average Risk Score</div>
+        <div class="kpi-value" style="color: #60a5fa;">{{ metrics.avg_risk_score }}%</div>
+        <div class="kpi-sub">Mean calculated risk</div>
+    </div>
+</div>
+
+<!-- PDF Modules Architecture Map -->
+<div class="card">
+    <div class="card-header">
+        <h3>System Architecture & PDF Review Modules</h3>
+        <span class="badge badge-info">6 Pipeline Modules</span>
+    </div>
+    <div class="grid-3" style="margin-top: 1rem;">
+        <div style="background-color: rgba(15, 23, 42, 0.4); padding: 1.1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+            <div style="font-size: 1.25rem; margin-bottom: 0.35rem;">📦 1. Data Collection</div>
+            <div style="font-size: 0.8rem; color: #38bdf8; font-family: monospace;">scanner/pipeline/data_collection.py</div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                Loads raw phishing datasets (PhiUSIIL URL dataset) and exports stored scans from SQLite database.
+            </p>
+        </div>
+        <div style="background-color: rgba(15, 23, 42, 0.4); padding: 1.1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+            <div style="font-size: 1.25rem; margin-bottom: 0.35rem;">⚙️ 2. Preprocessing</div>
+            <div style="font-size: 0.8rem; color: #38bdf8; font-family: monospace;">scanner/pipeline/preprocessing.py</div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                Removes duplicates and invalid URLs, performs median imputation for missing values, and scales features.
+            </p>
+        </div>
+        <div style="background-color: rgba(15, 23, 42, 0.4); padding: 1.1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+            <div style="font-size: 1.25rem; margin-bottom: 0.35rem;">🔬 3. Feature Extraction</div>
+            <div style="font-size: 0.8rem; color: #38bdf8; font-family: monospace;">scanner/pipeline/feature_extraction.py</div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                Extracts 14 core lexical URL features plus offline-safe WHOIS age, DNS status, and redirect hops.
+            </p>
+        </div>
+        <div style="background-color: rgba(15, 23, 42, 0.4); padding: 1.1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+            <div style="font-size: 1.25rem; margin-bottom: 0.35rem;">🤖 4. Model Building</div>
+            <div style="font-size: 0.8rem; color: #38bdf8; font-family: monospace;">scanner/pipeline/model_building.py</div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                Sklearn Pipeline (Imputer &rarr; Scaler &rarr; Random Forest) benchmarked against a Logistic Regression baseline.
+            </p>
+        </div>
+        <div style="background-color: rgba(15, 23, 42, 0.4); padding: 1.1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+            <div style="font-size: 1.25rem; margin-bottom: 0.35rem;">🎯 5. Prediction Engine</div>
+            <div style="font-size: 0.8rem; color: #38bdf8; font-family: monospace;">scanner/model.py</div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                Classifies websites into Legitimate, Suspicious, or Fraudulent with an actionable 0-100 risk score.
+            </p>
+        </div>
+        <div style="background-color: rgba(15, 23, 42, 0.4); padding: 1.1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+            <div style="font-size: 1.25rem; margin-bottom: 0.35rem;">🚨 6. Alerts & Reports</div>
+            <div style="font-size: 0.8rem; color: #38bdf8; font-family: monospace;">scanner/pipeline/alerts.py & reports.py</div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                Generates automated security warnings, safe-browsing tips, RFC CSV audit logs, and printable review reports.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Test Examples -->
+<div class="card">
+    <div class="card-header">
+        <h3>Sample Benchmark URLs (Test Instantly)</h3>
+    </div>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <form method="POST" action="{% url 'scan' %}" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="url" value="https://www.google.com">
+            <button type="submit" class="btn btn-secondary" style="font-size: 0.85rem;">Google (Safe Example)</button>
+        </form>
+        <form method="POST" action="{% url 'scan' %}" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="url" value="https://github.com">
+            <button type="submit" class="btn btn-secondary" style="font-size: 0.85rem;">GitHub (Safe Example)</button>
+        </form>
+        <form method="POST" action="{% url 'scan' %}" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="url" value="http://secure-login-paypal.verify-account.tk/update?id=1">
+            <button type="submit" class="btn btn-danger" style="font-size: 0.85rem;">PayPal Phish (Phishing Example)</button>
+        </form>
+        <form method="POST" action="{% url 'scan' %}" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="url" value="http://192.168.1.1/admin/login.php">
+            <button type="submit" class="btn btn-danger" style="font-size: 0.85rem;">IP Address Host (Suspicious Example)</button>
+        </form>
+    </div>
+</div>
+
+<!-- Recent Scans Table Preview -->
+{% if recent_scans %}
+<div class="card">
+    <div class="card-header">
+        <h3>Recent Website Scans</h3>
+        <a href="{% url 'history' %}" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">View Full History &rarr;</a>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>URL</th>
+                    <th>Prediction</th>
+                    <th>Risk Score</th>
+                    <th>Scanned At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for scan in recent_scans %}
+                <tr>
+                    <td style="font-family: monospace; max-width: 380px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        {{ scan.url }}
+                    </td>
+                    <td>
+                        {% if scan.prediction == "Legitimate" %}
+                            <span class="badge badge-success">{{ scan.prediction }}</span>
+                        {% elif scan.prediction == "Suspicious" %}
+                            <span class="badge badge-warning">{{ scan.prediction }}</span>
+                        {% else %}
+                            <span class="badge badge-danger">{{ scan.prediction }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong style="color: {% if scan.risk_score >= 75 %}#f87171{% elif scan.risk_score >= 40 %}#fbbf24{% else %}#34d399{% endif %};">
+                            {{ scan.risk_score }}%
+                        </strong>
+                    </td>
+                    <td style="color: var(--text-muted); font-size: 0.85rem;">
+                        {{ scan.created_at|date:"M d, Y H:i" }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

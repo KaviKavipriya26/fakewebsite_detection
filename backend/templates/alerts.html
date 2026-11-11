@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Security Alerts — Automated Phishing Warnings{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1>Security Threat Alerts</h1>
+        <p class="lead" style="margin-bottom: 0;">Automated high-severity security warnings generated whenever a scanned URL triggers malicious or phishing indicators.</p>
+    </div>
+    <div style="display: flex; gap: 0.5rem;">
+        <a href="{% url 'scan' %}" class="btn btn-primary" style="font-size: 0.85rem;">Scan New Website</a>
+    </div>
+</div>
+
+<!-- Filter Controls -->
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <a href="{% url 'alerts' %}" class="btn {% if not severity %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 0.85rem; padding: 0.4rem 0.9rem;">All Alerts ({{ total_alerts }})</a>
+        <a href="{% url 'alerts' %}?severity=high" class="btn {% if severity == 'high' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 0.85rem; padding: 0.4rem 0.9rem;">🚨 Critical / High</a>
+        <a href="{% url 'alerts' %}?severity=medium" class="btn {% if severity == 'medium' %}btn-primary{% else %}btn-secondary{% endif %}" style="font-size: 0.85rem; padding: 0.4rem 0.9rem;">⚠️ Suspicious / Medium</a>
+    </div>
+</div>
+
+<!-- Alerts Feed -->
+<div style="display: grid; gap: 1.25rem;">
+    {% for alert in alerts %}
+    <div class="card" style="margin-bottom: 0; border-left: 6px solid {% if alert.severity == 'high' %}#ef4444{% else %}#f59e0b{% endif %};">
+        <div class="card-header">
+            <div>
+                <span class="badge {% if alert.severity == 'high' %}badge-danger{% else %}badge-warning{% endif %}" style="margin-bottom: 0.25rem;">
+                    {{ alert.severity }} Severity
+                </span>
+                <h3 style="margin-top: 0.2rem; color: #fff;">
+                    {{ alert.title }}
+                </h3>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">
+                {{ alert.created_at|date:"Y-m-d H:i" }}
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.2rem;">Flagged URL Target:</div>
+            <div style="font-family: monospace; font-size: 0.95rem; color: #38bdf8; word-break: break-all;">
+                {{ alert.url }}
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1.25rem; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;">
+            {{ alert.message }}
+        </div>
+
+        {% if alert.recommendations %}
+        <div style="background-color: rgba(15, 23, 42, 0.4); padding: 0.9rem; border-radius: 8px; border: 1px solid var(--border-color);">
+            <div style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.35rem;">
+                Recommended Safe Browsing Guidance:
+            </div>
+            <ul style="padding-left: 1.2rem; font-size: 0.85rem; color: var(--text-secondary); display: grid; gap: 0.25rem;">
+                {% for rec in alert.recommendations %}
+                <li>{{ rec }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="card" style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🛡️</div>
+        <h3>No Security Alerts on Record</h3>
+        <p style="margin-top: 0.25rem; font-size: 0.9rem;">No websites have triggered critical alerts matching this filter. Scanned threats appear here automatically.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

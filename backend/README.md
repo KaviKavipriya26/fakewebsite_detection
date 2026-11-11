@@ -1,28 +1,15 @@
-# FraudGuard Backend (Django REST)
+# Backend — ML-Based Fake Website and Online Fraud Detection System
 
-## Run
+Please refer to the comprehensive [Root README.md](../README.md) for complete project architecture, setup steps, MySQL configuration, training instructions, and the PDF module mapping table.
+
+### Quick Start
 ```bash
 python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+venv\Scripts\activate
 pip install -r requirements.txt
-python manage.py runserver      # http://localhost:8000
+python manage.py makemigrations
+python manage.py migrate
+python manage.py runserver 8000
 ```
-
-## Connect the frontend
-In the React project, create `.env`:
-```
-VITE_API_BASE_URL=http://localhost:8000
-VITE_API_SCAN_PATH=/api/scan/
-```
-Restart the frontend dev server.
-
-## Endpoints
-- `GET  /api/health/`
-- `POST /api/scan/`  body `{ "url": "https://example.com" }`
-
-## Use your own ML model
-Put your trained `model.pkl` in `scanner/` and match `FEATURE_ORDER` in `scanner/model.py`.
-Without it, a rule-based heuristic is used.
-
-## CORS
-If your frontend runs on another port, add it to `CORS_ALLOWED_ORIGINS` in `backend/settings.py`.
+Web UI: **http://localhost:8000**  
+REST API: **http://localhost:8000/api/scan/**

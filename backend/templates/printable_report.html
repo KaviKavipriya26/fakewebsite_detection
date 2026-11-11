@@ -1,0 +1,272 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Forensic Project Review Report — ML-Based Fake Website & Fraud Detection System</title>
+    <link rel="icon" type="image/png" href="{% static 'favicon.png' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            color: #111827;
+            background: #fff;
+            padding: 2.5rem;
+            max-width: 960px;
+            margin: 0 auto;
+            line-height: 1.5;
+            font-size: 13px;
+        }
+        h1 { font-size: 22px; margin-bottom: 4px; color: #111827; }
+        h2 { font-size: 16px; margin: 20px 0 8px 0; border-bottom: 2px solid #e5e7eb; padding-bottom: 4px; color: #1f2937; }
+        p { margin-bottom: 10px; color: #4b5563; }
+        .meta-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #6b7280;
+            border-bottom: 1px solid #d1d5db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            border: 1px solid #e5e7eb;
+            padding: 10px;
+            border-radius: 6px;
+            background-color: #f9fafb;
+        }
+        .stat-title { font-size: 11px; text-transform: uppercase; color: #6b7280; }
+        .stat-val { font-size: 20px; font-weight: bold; margin-top: 4px; color: #111827; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        th {
+            background-color: #f3f4f6;
+            text-align: left;
+            padding: 6px 8px;
+            border: 1px solid #e5e7eb;
+            font-weight: 600;
+        }
+        td {
+            padding: 6px 8px;
+            border: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+        tr:nth-child(even) td {
+            background-color: #fafafa;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-legit { background-color: #d1fae5; color: #065f46; }
+        .badge-suspic { background-color: #fef3c7; color: #92400e; }
+        .badge-fraud { background-color: #fee2e2; color: #991b1b; }
+        .no-print {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 16px;
+            background-color: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+        }
+        .btn-secondary {
+            background-color: #4b5563;
+        }
+        @media print {
+            .no-print { display: none; }
+            body { padding: 0; font-size: 11px; }
+            h1 { font-size: 18px; }
+            h2 { font-size: 14px; }
+            table { page-break-inside: auto; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="btn" onclick="window.print()">🖨️ Print Report / Save PDF</button>
+        <button class="btn btn-secondary" onclick="window.close()">Close Window</button>
+    </div>
+
+    <h1>ML-Based Fake Website & Online Fraud Detection System</h1>
+    <p>Forensic Evaluation & Academic Review Audit Summary</p>
+
+    <div class="meta-bar">
+        <span><strong>Generated At:</strong> {{ report_generated_at }}</span>
+        <span><strong>System:</strong> Django + Scikit-Learn Random Forest Pipeline</span>
+        <span><strong>Target:</strong> College Review PDF Specification</span>
+    </div>
+
+    <h2>1. Executive Summary & Telemetry</h2>
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="stat-title">Total Websites Scanned</div>
+            <div class="stat-val">{{ metrics.total_scans }}</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-title">Verified Legitimate</div>
+            <div class="stat-val" style="color: #059669;">{{ metrics.legitimate_count }} ({{ metrics.legitimate_pct }}%)</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-title">Phishing / Fraudulent</div>
+            <div class="stat-val" style="color: #dc2626;">{{ metrics.fraudulent_count }} ({{ metrics.fraudulent_pct }}%)</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-title">Average Risk Score</div>
+            <div class="stat-val" style="color: #2563eb;">{{ metrics.avg_risk_score }}%</div>
+        </div>
+    </div>
+
+    <h2>2. Module Methodology Overview</h2>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 25%;">Module Name</th>
+                <th style="width: 30%;">File Path</th>
+                <th style="width: 45%;">Design Methodology</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1. Data Collection</td>
+                <td><code>scanner/pipeline/data_collection.py</code></td>
+                <td>Phishing URL datasets (PhiUSIIL) ingestion and historical DB scan record exports.</td>
+            </tr>
+            <tr>
+                <td>2. Preprocessing</td>
+                <td><code>scanner/pipeline/preprocessing.py</code></td>
+                <td>Duplicate URL removal, regex sanitization, SimpleImputer (median), StandardScaler.</td>
+            </tr>
+            <tr>
+                <td>3. Feature Extraction</td>
+                <td><code>scanner/pipeline/feature_extraction.py</code></td>
+                <td>14 lexical features + offline-safe WHOIS age, DNS resolution, and redirect hops.</td>
+            </tr>
+            <tr>
+                <td>4. Model Building</td>
+                <td><code>scanner/pipeline/model_building.py</code></td>
+                <td>Sklearn Pipeline (RandomForestClassifier) evaluated vs. LogisticRegression baseline.</td>
+            </tr>
+            <tr>
+                <td>5. Prediction</td>
+                <td><code>scanner/model.py</code></td>
+                <td>Classification into Legitimate / Suspicious / Fraudulent + 0-100 risk score.</td>
+            </tr>
+            <tr>
+                <td>6. Alerts & Reports</td>
+                <td><code>scanner/pipeline/alerts.py & reports.py</code></td>
+                <td>Automated threat warnings, safe browsing advice, CSV audit export, printable report.</td>
+            </tr>
+            <tr>
+                <td>Online Transaction Fraud</td>
+                <td><code>scanner/transaction_fraud.py</code></td>
+                <td>Rule-based heuristic scorer evaluated across amount velocity, country mismatch, device novelty.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>3. Scanned Website Audit Trail (Sample Records)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 5%;">#</th>
+                <th style="width: 40%;">Scanned Website URL</th>
+                <th style="width: 15%;">Classification</th>
+                <th style="width: 10%;">Risk</th>
+                <th style="width: 30%;">Key Indicators Flagged</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for scan in scan_records %}
+            <tr>
+                <td>{{ scan.id }}</td>
+                <td style="font-family: monospace; word-break: break-all;">{{ scan.url }}</td>
+                <td>
+                    {% if scan.prediction == "Legitimate" %}
+                        <span class="badge badge-legit">{{ scan.prediction }}</span>
+                    {% elif scan.prediction == "Suspicious" %}
+                        <span class="badge badge-suspic">{{ scan.prediction }}</span>
+                    {% else %}
+                        <span class="badge badge-fraud">{{ scan.prediction }}</span>
+                    {% endif %}
+                </td>
+                <td><strong>{{ scan.risk_score }}%</strong></td>
+                <td>
+                    {% for reason in scan.reasons|slice:":2" %}
+                        {{ reason }}{% if not forloop.last %}; {% endif %}
+                    {% empty %}
+                        Clean
+                    {% endfor %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #6b7280; padding: 12px;">No scan records on file.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if transaction_records %}
+    <h2>4. Online Transaction Risk Checks</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Transaction ID</th>
+                <th>Amount</th>
+                <th>Payment Method</th>
+                <th>Merchant</th>
+                <th>Assessment</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tx in transaction_records %}
+            <tr>
+                <td style="font-family: monospace;">{{ tx.transaction_id }}</td>
+                <td>${{ tx.amount }}</td>
+                <td>{{ tx.payment_method }}</td>
+                <td>{{ tx.merchant_name|default:tx.merchant_category }}</td>
+                <td>
+                    {% if tx.risk_level == "Low Risk" %}
+                        <span class="badge badge-legit">{{ tx.risk_level }}</span>
+                    {% elif tx.risk_level == "Medium Risk" %}
+                        <span class="badge badge-suspic">{{ tx.risk_level }}</span>
+                    {% else %}
+                        <span class="badge badge-fraud">{{ tx.risk_level }}</span>
+                    {% endif %}
+                </td>
+                <td><strong>{{ tx.risk_score }}%</strong></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <div style="margin-top: 40px; border-top: 1px solid #d1d5db; padding-top: 10px; font-size: 11px; color: #6b7280; display: flex; justify-content: space-between;">
+        <span>ML-Based Fake Website & Online Fraud Detection System</span>
+        <span>College Project Review Verification Sign-off: _____________________</span>
+    </div>
+</body>
+</html>

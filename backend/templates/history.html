@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Scan History — Database Audit Logs{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1>Website Scan History</h1>
+        <p class="lead" style="margin-bottom: 0;">Persistent database log of all analyzed URLs with predictions, risk scores, and extracted feature snapshots.</p>
+    </div>
+    <div style="display: flex; gap: 0.5rem;">
+        <a href="{% url 'export_csv' %}" class="btn btn-primary" style="font-size: 0.85rem;">📥 Export CSV</a>
+        <a href="{% url 'printable_report' %}" class="btn btn-secondary" style="font-size: 0.85rem;" target="_blank">🖨️ Printable Report</a>
+    </div>
+</div>
+
+<!-- Search & Filter Controls -->
+<div class="card">
+    <form method="GET" action="{% url 'history' %}" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end;">
+        <div style="flex: 2; min-width: 240px;">
+            <label class="form-label" for="q" style="font-size: 0.8rem;">Search by URL</label>
+            <input type="text" name="q" id="q" class="form-control" placeholder="Search domain, host or path..." value="{{ query }}">
+        </div>
+        <div style="flex: 1; min-width: 180px;">
+            <label class="form-label" for="class" style="font-size: 0.8rem;">Filter by Classification</label>
+            <select name="class" id="class" class="form-control">
+                <option value="">All Classifications</option>
+                <option value="Legitimate" {% if classification == "Legitimate" %}selected{% endif %}>Legitimate Only</option>
+                <option value="Suspicious" {% if classification == "Suspicious" %}selected{% endif %}>Suspicious Only</option>
+                <option value="Fraudulent" {% if classification == "Fraudulent" %}selected{% endif %}>Fraudulent Only</option>
+            </select>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <button type="submit" class="btn btn-primary" style="padding: 0.7rem 1.25rem;">Filter</button>
+            {% if query or classification %}
+                <a href="{% url 'history' %}" class="btn btn-secondary" style="padding: 0.7rem 1rem;">Clear</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- History Table -->
+<div class="card">
+    <div class="card-header">
+        <h3>Recorded Scans ({{ total_count }})</h3>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 60px;">ID</th>
+                    <th>Target URL</th>
+                    <th>Classification</th>
+                    <th>Risk Score</th>
+                    <th>Primary Threat Factors</th>
+                    <th>Timestamp (UTC)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for scan in scans %}
+                <tr>
+                    <td style="color: var(--text-muted); font-size: 0.8rem;">#{{ scan.id }}</td>
+                    <td style="font-family: monospace; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <a href="{% url 'scan' %}?url={{ scan.url|urlencode }}" style="color: #fff;" title="Re-scan this URL">
+                            {{ scan.url }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if scan.prediction == "Legitimate" %}
+                            <span class="badge badge-success">{{ scan.prediction }}</span>
+                        {% elif scan.prediction == "Suspicious" %}
+                            <span class="badge badge-warning">{{ scan.prediction }}</span>
+                        {% else %}
+                            <span class="badge badge-danger">{{ scan.prediction }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong style="color: {% if scan.risk_score >= 75 %}#f87171{% elif scan.risk_score >= 40 %}#fbbf24{% else %}#34d399{% endif %};">
+                            {{ scan.risk_score }}%
+                        </strong>
+                    </td>
+                    <td style="color: var(--text-secondary); font-size: 0.8rem; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        {% for reason in scan.reasons|slice:":2" %}
+                            {{ reason }}{% if not forloop.last %}; {% endif %}
+                        {% empty %}
+                            Clean
+                        {% endfor %}
+                    </td>
+                    <td style="color: var(--text-muted); font-size: 0.8rem; white-space: nowrap;">
+                        {{ scan.created_at|date:"Y-m-d H:i:s" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                        No scan records found matching the query.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

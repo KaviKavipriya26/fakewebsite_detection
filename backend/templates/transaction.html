@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}Check Transaction — Online Fraud Detection{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div style="margin-bottom: 2rem;">
+        <span class="badge badge-warning" style="margin-bottom: 0.5rem;">Academic Rule-Based Prototype</span>
+        <h1>Online Transaction Fraud Detection</h1>
+        <p class="lead">
+            Evaluate payment and e-commerce transactions for potential fraud patterns, velocity anomalies,
+            and geolocation inconsistencies using multi-factor heuristic risk scoring.
+        </p>
+    </div>
+
+    <!-- Academic Disclaimer Banner -->
+    <div style="background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius); padding: 1.1rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+            <div style="font-size: 1.4rem;">ℹ️</div>
+            <div>
+                <strong style="color: #fbbf24; font-size: 0.95rem;">Methodology Notice: Rule-Based Evaluation</strong>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                    This transaction module utilizes a <strong>Rule-Based Heuristic Scorer</strong> as specified for the college review project,
+                    because public commercial banking transaction datasets are proprietary. URL phishing detection uses Machine Learning (Random Forest);
+                    transaction fraud checks use deterministic risk rules.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Form -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Enter Transaction Parameters</h3>
+        </div>
+        <form method="POST" action="{% url 'transaction' %}">
+            {% csrf_token %}
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="amount">Transaction Amount ($)</label>
+                    <input 
+                        type="number" 
+                        step="0.01" 
+                        min="0" 
+                        name="amount" 
+                        id="amount" 
+                        class="form-control" 
+                        placeholder="149.99" 
+                        value="{{ form_data.amount|default:'' }}" 
+                        required
+                    >
+                    <div class="form-hint">Amounts above $1,500 and $5,000 trigger velocity risk thresholds.</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="payment_method">Payment Rail / Method</label>
+                    <select name="payment_method" id="payment_method" class="form-control">
+                        <option value="Credit Card" {% if form_data.payment_method == "Credit Card" %}selected{% endif %}>Credit Card (Standard)</option>
+                        <option value="Debit Card" {% if form_data.payment_method == "Debit Card" %}selected{% endif %}>Debit Card</option>
+                        <option value="UPI / Instant Bank" {% if form_data.payment_method == "UPI / Instant Bank" %}selected{% endif %}>UPI / Instant Bank Transfer</option>
+                        <option value="Wire Transfer" {% if form_data.payment_method == "Wire Transfer" %}selected{% endif %}>International Wire Transfer</option>
+                        <option value="Cryptocurrency" {% if form_data.payment_method == "Cryptocurrency" %}selected{% endif %}>Cryptocurrency (Irreversible)</option>
+                        <option value="Prepaid Card" {% if form_data.payment_method == "Prepaid Card" %}selected{% endif %}>Prepaid / Gift Card</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="merchant_name">Merchant Name</label>
+                    <input 
+                        type="text" 
+                        name="merchant_name" 
+                        id="merchant_name" 
+                        class="form-control" 
+                        placeholder="Acme Electronics Store" 
+                        value="{{ form_data.merchant_name|default:'' }}"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="merchant_category">Merchant Category</label>
+                    <select name="merchant_category" id="merchant_category" class="form-control">
+                        <option value="E-Commerce Retail" {% if form_data.merchant_category == "E-Commerce Retail" %}selected{% endif %}>E-Commerce / General Retail</option>
+                        <option value="Travel & Airlines" {% if form_data.merchant_category == "Travel & Airlines" %}selected{% endif %}>Travel, Airlines & Hotels</option>
+                        <option value="Electronics & Gadgets" {% if form_data.merchant_category == "Electronics & Gadgets" %}selected{% endif %}>Electronics & Computer Hardware</option>
+                        <option value="Crypto Exchange" {% if form_data.merchant_category == "Crypto Exchange" %}selected{% endif %}>Cryptocurrency Exchange (High Risk)</option>
+                        <option value="Gambling / Casino" {% if form_data.merchant_category == "Gambling / Casino" %}selected{% endif %}>Online Gaming & Casino (High Risk)</option>
+                        <option value="Luxury Goods" {% if form_data.merchant_category == "Luxury Goods" %}selected{% endif %}>Luxury Jewelry & Watches (High Risk)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="card_country">Card Issuing Country Code</label>
+                    <input 
+                        type="text" 
+                        name="card_country" 
+                        id="card_country" 
+                        class="form-control" 
+                        placeholder="US, IN, GB, CA" 
+                        maxlength="2" 
+                        style="text-transform: uppercase;" 
+                        value="{{ form_data.card_country|default:'US' }}"
+                    >
+                    <div class="form-hint">2-letter ISO country code of the issuing bank.</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="billing_country">Billing / User Country Code</label>
+                    <input 
+                        type="text" 
+                        name="billing_country" 
+                        id="billing_country" 
+                        class="form-control" 
+                        placeholder="US, IN, GB, NG" 
+                        maxlength="2" 
+                        style="text-transform: uppercase;" 
+                        value="{{ form_data.billing_country|default:'US' }}"
+                    >
+                    <div class="form-hint">Location of customer IP or billing address. Mismatch increases risk.</div>
+                </div>
+            </div>
+
+            <div style="background-color: rgba(15, 23, 42, 0.5); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 1.25rem;">
+                <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer; margin-bottom: 0.6rem; font-size: 0.9rem;">
+                    <input type="checkbox" name="is_first_time_merchant" {% if form_data.is_first_time_merchant %}checked{% endif %} style="width: 16px; height: 16px;">
+                    <span><strong>First-Time Merchant:</strong> No prior completed transaction history with this vendor</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer; font-size: 0.9rem;">
+                    <input type="checkbox" name="is_device_new" {% if form_data.is_device_new %}checked{% endif %} style="width: 16px; height: 16px;">
+                    <span><strong>New / Untrusted Device:</strong> Transaction initiated from an unrecognized browser, hardware ID, or new IP</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1rem;">
+                🛡️ Evaluate Transaction
+            </button>
+        </form>
+    </div>
+
+    <!-- Transaction Results Display -->
+    {% if result %}
+    <div class="card" style="border-left: 6px solid {% if result.risk_level == 'Low Risk' %}#10b981{% elif result.risk_level == 'Medium Risk' %}#f59e0b{% else %}#ef4444{% endif %};">
+        <div class="card-header">
+            <div>
+                <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">
+                    Evaluation Assessment
+                </span>
+                <h2 style="font-size: 1.35rem; margin-top: 0.2rem;">
+                    {{ result.transaction_id }}
+                </h2>
+            </div>
+            <div>
+                {% if result.risk_level == "Low Risk" %}
+                    <span class="badge badge-success" style="font-size: 0.95rem; padding: 0.4rem 1rem;">🟢 Low Risk</span>
+                {% elif result.risk_level == "Medium Risk" %}
+                    <span class="badge badge-warning" style="font-size: 0.95rem; padding: 0.4rem 1rem;">🟡 Medium Risk</span>
+                {% else %}
+                    <span class="badge badge-danger" style="font-size: 0.95rem; padding: 0.4rem 1rem;">🔴 High Risk</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Risk Meter -->
+        <div style="margin: 1.25rem 0; padding: 1.25rem; background-color: rgba(15, 23, 42, 0.5); border-radius: 8px; border: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem;">
+                <span style="font-size: 0.95rem; font-weight: 600;">Calculated Fraud Probability Score</span>
+                <span style="font-size: 1.5rem; font-weight: 700; color: {% if result.risk_score >= 70 %}#f87171{% elif result.risk_score >= 35 %}#fbbf24{% else %}#34d399{% endif %};">
+                    {{ result.risk_score }} / 100
+                </span>
+            </div>
+            <div style="width: 100%; height: 12px; background-color: #334155; border-radius: 9999px; overflow: hidden;">
+                <div style="height: 100%; width: {{ result.risk_score }}%; background-color: {% if result.risk_score >= 70 %}#ef4444{% elif result.risk_score >= 35 %}#f59e0b{% else %}#10b981{% endif %};"></div>
+            </div>
+            <div style="margin-top: 0.75rem; font-size: 0.85rem; color: #fff;">
+                <strong>Recommended Action:</strong> {{ result.recommendation }}
+            </div>
+        </div>
+
+        <!-- Triggered Rules -->
+        <div style="margin-bottom: 1.5rem;">
+            <h3>Triggered Fraud Risk Rules</h3>
+            <ul style="list-style-type: none; margin-top: 0.5rem; display: grid; gap: 0.4rem;">
+                {% for rule in result.triggered_rules %}
+                <li style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: #f87171; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); padding: 0.5rem 0.75rem; border-radius: 6px;">
+                    <span>⚠️</span>
+                    <span>{{ rule }}</span>
+                </li>
+                {% empty %}
+                <li style="font-size: 0.85rem; color: #34d399; background: rgba(16, 185, 129, 0.08); padding: 0.5rem 0.75rem; border-radius: 6px;">
+                    ✅ No adverse risk rules triggered. All parameters conform to safe transaction patterns.
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div style="font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 0.75rem;">
+            <em>{{ result.methodology_note }}</em>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

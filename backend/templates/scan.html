@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Scan Website — ML-Based Fake Website Detection{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div style="margin-bottom: 2rem;">
+        <h1>Website Security Scanner</h1>
+        <p class="lead">
+            Inspect website URLs in real time. Features are extracted dynamically and evaluated
+            via our Scikit-Learn Random Forest model with offline-safe domain verification.
+        </p>
+    </div>
+
+    <!-- Scanner Form -->
+    <div class="card">
+        <form method="POST" action="{% url 'scan' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label" for="url_input">Website URL to Analyze</label>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <input 
+                        type="text" 
+                        name="url" 
+                        id="url_input" 
+                        class="form-control" 
+                        placeholder="https://example.com/login" 
+                        value="{{ url }}" 
+                        required 
+                        style="flex: 1; min-width: 260px;"
+                    >
+                    <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.75rem;">
+                        ⚡ Analyze URL
+                    </button>
+                </div>
+                <div class="form-hint">
+                    Enter any fully qualified HTTP/HTTPS web address or raw domain.
+                </div>
+            </div>
+            {% if error %}
+            <div style="padding: 0.85rem; border-radius: 8px; background-color: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; font-size: 0.9rem;">
+                {{ error }}
+            </div>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Scan Results Display -->
+    {% if result %}
+    <div class="card" style="border-left: 6px solid {% if result.prediction == 'Legitimate' %}#10b981{% elif result.prediction == 'Suspicious' %}#f59e0b{% else %}#ef4444{% endif %};">
+        <div class="card-header">
+            <div>
+                <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">
+                    Evaluation Result
+                </span>
+                <h2 style="margin-top: 0.2rem; word-break: break-all; font-family: monospace; font-size: 1.25rem;">
+                    {{ result.url }}
+                </h2>
+            </div>
+            <div>
+                {% if result.prediction == "Legitimate" %}
+                    <span class="badge badge-success" style="font-size: 0.95rem; padding: 0.4rem 1rem;">✅ Legitimate</span>
+                {% elif result.prediction == "Suspicious" %}
+                    <span class="badge badge-warning" style="font-size: 0.95rem; padding: 0.4rem 1rem;">⚠️ Suspicious</span>
+                {% else %}
+                    <span class="badge badge-danger" style="font-size: 0.95rem; padding: 0.4rem 1rem;">🚨 Fraudulent</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Risk Score Meter -->
+        <div style="margin: 1.5rem 0; padding: 1.25rem; background-color: rgba(15, 23, 42, 0.5); border-radius: 8px; border: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem;">
+                <span style="font-size: 0.95rem; font-weight: 600;">Composite Threat Risk Score</span>
+                <span style="font-size: 1.5rem; font-weight: 700; color: {% if result.risk_score >= 75 %}#f87171{% elif result.risk_score >= 40 %}#fbbf24{% else %}#34d399{% endif %};">
+                    {{ result.risk_score }} / 100
+                </span>
+            </div>
+            <div style="width: 100%; height: 12px; background-color: #334155; border-radius: 9999px; overflow: hidden;">
+                <div style="height: 100%; width: {{ result.risk_score }}%; background-color: {% if result.risk_score >= 75 %}#ef4444{% elif result.risk_score >= 40 %}#f59e0b{% else %}#10b981{% endif %}; transition: width 0.5s ease;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.4rem;">
+                <span>0 (Safe)</span>
+                <span>40 (Suspicious Threshold)</span>
+                <span>75 (Fraudulent Threshold)</span>
+                <span>100 (Critical)</span>
+            </div>
+            <div style="margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-secondary);">
+                Inference Engine: <strong>{{ result.model_used }}</strong>
+            </div>
+        </div>
+
+        <!-- Automated Alert Banner -->
+        {% if result.alerts %}
+        <div style="margin-bottom: 1.5rem;">
+            {% for alert in result.alerts %}
+            <div style="background-color: {% if alert.severity == 'high' %}rgba(239, 68, 68, 0.15){% else %}rgba(245, 158, 11, 0.15){% endif %}; border: 1px solid {% if alert.severity == 'high' %}rgba(239, 68, 68, 0.35){% else %}rgba(245, 158, 11, 0.35){% endif %}; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem;">
+                <div style="font-weight: 700; color: {% if alert.severity == 'high' %}#f87171{% else %}#fbbf24{% endif %}; margin-bottom: 0.25rem;">
+                    {{ alert.title }}
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-primary);">
+                    {{ alert.message }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Reasons Breakdown -->
+        <div style="margin-bottom: 1.5rem;">
+            <h3>Key Threat & Safety Indicators</h3>
+            <ul style="list-style-type: none; margin-top: 0.5rem; display: grid; gap: 0.4rem;">
+                {% for reason in result.reasons %}
+                <li style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); background: rgba(255,255,255,0.02); padding: 0.45rem 0.75rem; border-radius: 6px;">
+                    <span>•</span>
+                    <span>{{ reason }}</span>
+                </li>
+                {% empty %}
+                <li style="font-size: 0.85rem; color: var(--text-muted);">No suspicious threat indicators flagged for this URL.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Domain & Network Info (Offline Safe) -->
+        <div style="margin-bottom: 1.5rem; padding: 1rem; background-color: rgba(15, 23, 42, 0.4); border-radius: 8px; border: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <h4 style="font-size: 0.95rem;">🌐 Domain & Network Verification</h4>
+                {% if result.domain_info.network_available %}
+                    <span class="badge badge-success" style="font-size: 0.7rem;">Live Lookup Complete</span>
+                {% else %}
+                    <span class="badge badge-info" style="font-size: 0.7rem;">Offline Safe Mode (Zero Penalty)</span>
+                {% endif %}
+            </div>
+            <div class="grid-3" style="font-size: 0.85rem;">
+                <div>
+                    <span style="color: var(--text-muted);">Domain Age:</span>
+                    <strong>
+                        {% if result.domain_info.domain_age_days is not None %}
+                            {{ result.domain_info.domain_age_days }} days
+                        {% else %}
+                            <span style="color: var(--text-muted);">Unknown (Lookup Skipped/Offline)</span>
+                        {% endif %}
+                    </strong>
+                </div>
+                <div>
+                    <span style="color: var(--text-muted);">DNS Status:</span>
+                    <strong>
+                        {% if result.domain_info.dns_resolved == True %}
+                            <span style="color: #34d399;">Resolved</span>
+                        {% else %}
+                            <span style="color: var(--text-muted);">{{ result.domain_info.dns_resolved }}</span>
+                        {% endif %}
+                    </strong>
+                </div>
+                <div>
+                    <span style="color: var(--text-muted);">HTTP Redirects:</span>
+                    <strong>{{ result.domain_info.redirect_count|default:"0" }} hops</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- 14 Feature Matrix Table -->
+        <div style="margin-bottom: 1.5rem;">
+            <h3>Extracted Feature Matrix (14 Features)</h3>
+            <div class="table-responsive" style="margin-top: 0.5rem;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature Name</th>
+                            <th>Extracted Value</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-family: monospace;">https</td>
+                            <td><strong>{{ result.features.https|yesno:"Yes,No" }}</strong></td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;">Encrypted SSL/TLS connection protocol</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace;">url_length</td>
+                            <td><strong>{{ result.features.url_length }}</strong></td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;">Total character count of the full URL string</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace;">domain_length</td>
+                            <td><strong>{{ result.features.domain_length }}</strong></td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;">Length of the normalized domain host</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace;">has_ip_address</td>
+                            <td><strong>{{ result.features.has_ip_address|yesno:"Yes,No" }}</strong></td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;">Direct numerical IPv4/IPv6 host instead of DNS name</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace;">has_at_symbol</td>
+                            <td><strong>{{ result.features.has_at_symbol|yesno:"Yes,No" }}</strong></td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;">Presence of '@' character used for credential hiding</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace;">subdomain_count</td>
+                            <td><strong>{{ result.features.subdomain_count }}</strong></td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;">Number of nested subdomain levels beyond primary SLD</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace;">hyphens_in_domain</td>
+                            <td><strong>{{ result.features.hyphens_in_domain }}</strong></td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;">Count of '-' separators inside the domain name</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace;">digits_in_host</td>
+                            <td><strong>{{ result.features.digits_in_host }}</strong></td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;">Total numeric digits in host string</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace;">suspicious_keywords_in_host</td>
+                            <td><strong>{{ result.features.suspicious_keywords_in_host }}</strong></td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;">High-risk brands/actions embedded in host (e.g. login, verify)</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace;">suspicious_keywords</td>
+                            <td><strong>{{ result.features.suspicious_keywords }}</strong></td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;">Total phishing keywords in entire URL string</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace;">suspicious_tld</td>
+                            <td><strong>{{ result.features.suspicious_tld|yesno:"Yes,No" }}</strong></td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;">High-abuse top level domain (e.g., .tk, .xyz, .top)</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace;">is_shortener</td>
+                            <td><strong>{{ result.features.is_shortener|yesno:"Yes,No" }}</strong></td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;">Known URL shortener domain (e.g., bit.ly, tinyurl)</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace;">has_query</td>
+                            <td><strong>{{ result.features.has_query|yesno:"Yes,No" }}</strong></td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;">URL contains query string parameters (?key=val)</td>
+                        </tr>
+                        <tr>
+                            <td style="font-family: monospace;">special_chars</td>
+                            <td><strong>{{ result.features.special_chars }}</strong></td>
+                            <td style="color: var(--text-muted); font-size: 0.8rem;">Count of special characters (@-_%=&?#) in URL</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Safe Browsing Tips -->
+        <div>
+            <h3>Safe Browsing Recommendations</h3>
+            <ul style="margin-top: 0.5rem; padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-secondary); display: grid; gap: 0.35rem;">
+                {% for tip in result.safe_browsing_tips %}
+                <li>{{ tip }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

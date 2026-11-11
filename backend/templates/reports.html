@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Reports & Audit Logs — College Review Documentation{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1>System Reports & Forensic Audit</h1>
+        <p class="lead" style="margin-bottom: 0;">Formal documentation, statistical metrics, and export utilities for the College Review Presentation.</p>
+    </div>
+    <div style="display: flex; gap: 0.5rem;">
+        <a href="{% url 'export_csv' %}" class="btn btn-primary" style="font-size: 0.85rem;">📥 Download CSV Log</a>
+        <a href="{% url 'printable_report' %}" class="btn btn-secondary" style="font-size: 0.85rem;" target="_blank">🖨️ Printable Report</a>
+    </div>
+</div>
+
+<!-- Summary Metrics Cards -->
+<div class="grid-4" style="margin-bottom: 2rem;">
+    <div class="kpi-card">
+        <div class="kpi-title">Total Database Audits</div>
+        <div class="kpi-value">{{ metrics.total_scans }}</div>
+        <div class="kpi-sub">Total URL scans recorded</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-title">Verified Legitimate</div>
+        <div class="kpi-value" style="color: #34d399;">{{ metrics.legitimate_pct }}%</div>
+        <div class="kpi-sub">{{ metrics.legitimate_count }} safe domains</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-title">Flagged Phishing / Fraud</div>
+        <div class="kpi-value" style="color: #f87171;">{{ metrics.fraudulent_pct }}%</div>
+        <div class="kpi-sub">{{ metrics.fraudulent_count }} malicious domains</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-title">Transaction Checks</div>
+        <div class="kpi-value" style="color: #60a5fa;">{{ total_transactions }}</div>
+        <div class="kpi-sub">Rule-based evaluations</div>
+    </div>
+</div>
+
+<!-- Export Options Card -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3>Export & Presentation Tools</h3>
+    </div>
+    <div class="grid-2" style="margin-top: 0.5rem;">
+        <div style="background-color: rgba(15, 23, 42, 0.4); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color);">
+            <h4>📄 CSV Forensic Audit Log</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.5rem 0 1rem 0;">
+                Download a comma-separated file of all scanned records, risk scores, classifications,
+                and triggered threat factors for external statistical processing.
+            </p>
+            <a href="{% url 'export_csv' %}" class="btn btn-primary" style="font-size: 0.85rem;">
+                📥 Download RFC-Compliant CSV
+            </a>
+        </div>
+
+        <div style="background-color: rgba(15, 23, 42, 0.4); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color);">
+            <h4>🖨️ Printable Project Review Report</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.5rem 0 1rem 0;">
+                Open a clean, print-optimized document ready for browser print (Ctrl+P / Save as PDF)
+                with executive summary, module architectures, and recent audit samples.
+            </p>
+            <a href="{% url 'printable_report' %}" class="btn btn-secondary" style="font-size: 0.85rem;" target="_blank">
+                🖨️ Open Print View
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Methodology & Module Mapping Table -->
+<div class="card">
+    <div class="card-header">
+        <h3>College Review Module Mapping & Methodology</h3>
+        <span class="badge badge-info">PDF Specification Alignment</span>
+    </div>
+    <div class="table-responsive" style="margin-top: 0.5rem;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Review Module</th>
+                    <th>Implementation File</th>
+                    <th>Type</th>
+                    <th>Technical Methodology</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>1. Data Collection</strong></td>
+                    <td style="font-family: monospace; color: #38bdf8;">scanner/pipeline/data_collection.py</td>
+                    <td><span class="badge badge-info">Dataset I/O</span></td>
+                    <td style="font-size: 0.85rem; color: var(--text-secondary);">Loads PhiUSIIL phishing dataset CSV; exports database scan records.</td>
+                </tr>
+                <tr>
+                    <td><strong>2. Preprocessing</strong></td>
+                    <td style="font-family: monospace; color: #38bdf8;">scanner/pipeline/preprocessing.py</td>
+                    <td><span class="badge badge-info">ETL Pipeline</span></td>
+                    <td style="font-size: 0.85rem; color: var(--text-secondary);">Deduplication, regex URL sanitization, SimpleImputer (median), StandardScaler.</td>
+                </tr>
+                <tr>
+                    <td><strong>3. Feature Extraction</strong></td>
+                    <td style="font-family: monospace; color: #38bdf8;">scanner/pipeline/feature_extraction.py</td>
+                    <td><span class="badge badge-info">Feature Engineering</span></td>
+                    <td style="font-size: 0.85rem; color: var(--text-secondary);">14 core lexical features + offline-safe WHOIS age, DNS resolution, and HTTP redirects.</td>
+                </tr>
+                <tr>
+                    <td><strong>4. Model Building</strong></td>
+                    <td style="font-family: monospace; color: #38bdf8;">scanner/pipeline/model_building.py</td>
+                    <td><span class="badge badge-success">Machine Learning</span></td>
+                    <td style="font-size: 0.85rem; color: var(--text-secondary);">Scikit-Learn Pipeline (Imputer &rarr; Scaler &rarr; RandomForest) + LogisticRegression baseline.</td>
+                </tr>
+                <tr>
+                    <td><strong>5. Prediction Engine</strong></td>
+                    <td style="font-family: monospace; color: #38bdf8;">scanner/model.py</td>
+                    <td><span class="badge badge-success">ML Inference</span></td>
+                    <td style="font-size: 0.85rem; color: var(--text-secondary);">RandomForest probability scoring + fallback heuristic (Legitimate / Suspicious / Fraudulent).</td>
+                </tr>
+                <tr>
+                    <td><strong>6. Alerts & Reports</strong></td>
+                    <td style="font-family: monospace; color: #38bdf8;">scanner/pipeline/alerts.py & reports.py</td>
+                    <td><span class="badge badge-info">Analytics & Security</span></td>
+                    <td style="font-size: 0.85rem; color: var(--text-secondary);">Automatic threat warning generator, safe browsing tips, RFC CSV export, printable summary.</td>
+                </tr>
+                <tr>
+                    <td><strong>Online Transaction Fraud</strong></td>
+                    <td style="font-family: monospace; color: #38bdf8;">scanner/transaction_fraud.py</td>
+                    <td><span class="badge badge-warning">Rule-Based</span></td>
+                    <td style="font-size: 0.85rem; color: var(--text-secondary);">Deterministic heuristic risk scorer (amount velocity, country mismatch, device novelty).</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
