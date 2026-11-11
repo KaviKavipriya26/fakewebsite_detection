@@ -177,6 +177,155 @@ print(report["random_forest_pipeline"]["classification_report"])
 
 ---
 
+## ✅ Features at a Glance
+
+| Area | Feature |
+|---|---|
+| Website scanner | 14 URL features → Random Forest risk score (0-100) → **Legitimate / Suspicious / Fraudulent** (thresholds: <40, 40-74, ≥75) |
+| Explainability | Human-readable reasons (no HTTPS, many hyphens, risky TLD, shortener, keywords, IP address, `@` symbol ...) |
+| Domain intelligence | WHOIS domain age, DNS resolution, redirect hops — offline-safe (`unknown` = zero penalty) |
+| Transaction fraud | 6 rule-based checks → Low / Medium / High risk with recommended action |
+| Alerts | Auto High/Medium alerts, raw-IP alert, context-aware safe-browsing tips |
+| History | Every scan stored in SQLite; search by URL and filter by class |
+| Dashboard | KPIs, class distribution, recent scans / alerts / transactions |
+| Reports | CSV export + printable forensic report |
+| REST API | `GET /api/health/`, `POST /api/scan/` |
+| Pipeline | Data collection, preprocessing, feature extraction, model building (RF vs Logistic Regression), alerts, reports |
+| Testing | `test_all_modules.py` – 9 stages (all passing) |
+
+### The 14 URL features
+`https`, `domain_length`, `url_length`, `hyphens_in_domain`, `digits_in_host`, `has_ip_address`, `has_at_symbol`, `subdomain_count`, `suspicious_keywords_in_host`, `suspicious_keywords`, `suspicious_tld`, `is_shortener`, `has_query`, `special_chars`
+
+---
+
+## 🔮 Features That Can Be Added (Roadmap)
+
+**Better detection**
+- [ ] Page-content analysis (password fields, login form posting to another domain, hidden iframes, external-link ratio)
+- [ ] SSL certificate check (issuer, expiry, self-signed)
+- [ ] Typosquatting / brand impersonation (Levenshtein distance – `paypa1.com`, `g00gle.com`)
+- [ ] Homograph / Punycode (`xn--`) detection
+- [ ] More URL features: entropy, path depth, port number, digit ratio, `.exe`/`.apk` links
+- [ ] Threat-intel APIs: Google Safe Browsing, VirusTotal, PhishTank, OpenPhish
+- [ ] Whitelist / blacklist management
+
+**Better ML**
+- [ ] Compare XGBoost / LightGBM / Gradient Boosting with Random Forest
+- [ ] SHAP / feature-importance explanations from the model itself
+- [ ] "Model Performance" page (accuracy, precision, recall, F1, confusion matrix)
+- [ ] Cross-validation, probability calibration, feedback-based retraining
+
+**Transaction fraud**
+- [ ] ML model using Kaggle Credit Card Fraud / IEEE-CIS dataset
+- [ ] Velocity features (transactions per hour/day), IP geolocation, time-of-day rules
+- [ ] `POST /api/transaction/` REST endpoint
+
+**Platform & UI**
+- [ ] User login with Admin / User roles
+- [ ] Charts (Chart.js) on dashboard
+- [ ] Bulk scan from CSV upload
+- [ ] PDF / Excel report export
+- [ ] Email / SMS / Telegram alerts
+- [ ] Chrome browser extension
+- [ ] Multi-language UI (Tamil / Hindi / English), dark mode
+- [ ] Swagger / OpenAPI docs + API-key auth
+
+**Engineering & security**
+- [ ] `SECRET_KEY` from environment, `DEBUG=False`, restricted `ALLOWED_HOSTS` for deployment
+- [ ] Background / cached WHOIS-DNS lookups (Celery), API rate limiting
+- [ ] Docker + docker-compose, cloud deployment
+- [ ] Remove unused `PyMySQL` dependency (or add a real MySQL/PostgreSQL option via env vars)
+
+---
+
+## ▶️ How to Run (Quick Summary)
+
+| What | Command | URL |
+|---|---|---|
+| **Backend + main frontend** (Django, single server) | Windows: `start-backend.bat` · Linux/macOS: `./start-backend.sh` | http://localhost:8000 |
+| **Legacy React frontend** (optional, backend must be running) | `cd legacy_react_frontend` → copy `.env.example` to `.env` → `npm install` → `npm run dev` | printed by Vite in terminal |
+| **Tests** | `cd backend && python test_all_modules.py` | – |
+
+> The main frontend is the Django template UI, so you do **not** need Node.js unless you want the legacy React app.
+
+**Troubleshooting**
+- `python` not found → use `py` / `python3`, or install Python with *Add to PATH*.
+- Port 8000 busy → `python manage.py runserver 8001`.
+- WHOIS/DNS shows `unknown` → you are offline; this is expected and not penalised.
+- React cannot reach backend → make sure the backend is running and `.env` has `VITE_API_BASE_URL=http://localhost:8000`.
+
+---
+
+## 🧾 Sample Input & Output
+
+### 1. Website scan (REST API)
+
+**Input**
+```bash
+curl -X POST http://localhost:8000/api/scan/ \
+  -H "Content-Type: application/json" \
+  -d '{"url":"http://secure-login-paypal-verify.xyz/update?id=123"}'
+```
+
+**Output (shortened)**
+```json
+{
+  "url": "http://secure-login-paypal-verify.xyz/update?id=123",
+  "prediction": "Fraudulent",
+  "risk_score": 98,
+  "features": {
+    "https": false, "domain_length": 30, "url_length": 51,
+    "hyphens_in_domain": 3, "has_ip_address": false,
+    "suspicious_keywords_in_host": 4, "suspicious_tld": true,
+    "is_shortener": false, "has_query": true, "special_chars": 5,
+    "domain_age_days": null, "redirects": 0
+  },
+  "reasons": [
+    "Unencrypted connection (No HTTPS)",
+    "Multiple hyphens in domain name (3)",
+    "Brand impersonation or security keyword embedded in domain",
+    "High-abuse / risky Top-Level Domain (TLD)",
+    "High count of URL special/encoded characters"
+  ],
+  "domain_info": { "dns_resolved": "unknown", "whois_status": "unknown", "network_available": false },
+  "alerts": [{ "severity": "high", "title": "Critical Phishing Alert: Fraudulent Domain Detected" }]
+}
+```
+
+### 2. More website samples
+
+| Input URL | Prediction | Risk |
+|---|---|---|
+| `https://www.google.com` | Legitimate | 1 |
+| `https://github.com/anthropics` | Legitimate | 7 |
+| `http://bit.ly/free-gift` | Fraudulent | 99 |
+| `http://192.168.1.10/bank/login@evil.com` | Fraudulent | 98 |
+| `http://secure-login-paypal-verify.xyz/update?id=123` | Fraudulent | 98 |
+
+### 3. API errors
+
+| Input | Output |
+|---|---|
+| `{}` | `{"error": "url is required"}` |
+| `{"url": "google.com"}` | `{"error": "url must start with http:// or https://"}` |
+
+(The `/scan/` web page adds `http://` automatically.)
+
+### 4. Transaction check (form at `/transaction/`)
+
+| Input | Output |
+|---|---|
+| Amount 120, Credit Card, Amazon / E-Commerce, IN → IN, not new merchant, known device | **Risk 0 – Low Risk**, no rules triggered |
+| Amount 6200, Cryptocurrency, CoinXYZ / Crypto Exchange, card IN, billing US, first-time merchant, new device | **Risk 100 – High Risk**; triggered: high value, country mismatch, high-risk category, new device, first-time merchant, irreversible payment. Action: 2FA step-up / manual review |
+
+### 5. CSV export (`/reports/export-csv/`)
+```csv
+Scan ID,Website URL,Classification,Risk Score (%),Scan Timestamp (UTC),Key Threat Indicators
+9,http://secure-login-paypal-verify.xyz/update?id=123,Fraudulent,98,2026-11-11 15:45:13,Unencrypted connection (No HTTPS); Multiple hyphens in domain name (3); ...
+```
+
+---
+
 ## 🌐 Legacy React Frontend (Optional)
 
 The previous React/Vite frontend has been moved to `legacy_react_frontend/`. It remains fully functional and connects to the Django REST API:
